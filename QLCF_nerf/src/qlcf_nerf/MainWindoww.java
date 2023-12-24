@@ -36,7 +36,7 @@ public class MainWindoww extends javax.swing.JFrame {
         cl = new CardLayout();
         usercontrol.setLayout(cl);
         usercontrol.add(new Panel_TrangChu(), "Trang chu");
-        usercontrol.add(new Panel_BanHang(c, lbl_username.getText()), "Ban hang");
+        usercontrol.add(new Panel_BanHang(c, "admin", "admin"), "Ban hang"); //tam thoi
         usercontrol.add(new Panel_QLTU(), "QLTU");
         usercontrol.add(new Panel_QLNV(), "QLNV");
         usercontrol.add(new Panel_DatBan(), "Dat ban");

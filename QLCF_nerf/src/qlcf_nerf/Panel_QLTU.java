@@ -51,7 +51,7 @@ public class Panel_QLTU extends javax.swing.JPanel {
                 Vector v = new Vector();
                 for(int i=1;i<=n;i++){
                     v.add(rs.getString("MATU"));
-                    v.add(rs.getString("TEN"));
+                    v.add(rs.getString("TENTU"));
                     v.add(rs.getString("LOAI"));
                     v.add(rs.getString("DVT"));
                     v.add(rs.getString("SOLUONG"));
@@ -134,7 +134,7 @@ public class Panel_QLTU extends javax.swing.JPanel {
     }
     
     private void suaTU(){
-        String q = "UPDATE THUCUONG SET TEN='" + tfTenTU.getText() +"', LOAI='" + cbLoaiNuoc.getSelectedItem().toString() + "', DVT='" + tfDVT.getText() +"', SOLUONG='" + tfSoLuong.getText() +"', GIA='"+ tfGia.getText() +"' WHERE MATU='" + tfMaTU.getText() +"'";
+        String q = "UPDATE THUCUONG SET TENTU='" + tfTenTU.getText() +"', LOAI='" + cbLoaiNuoc.getSelectedItem().toString() + "', DVT='" + tfDVT.getText() +"', SOLUONG='" + tfSoLuong.getText() +"', GIA='"+ tfGia.getText() +"' WHERE MATU='" + tfMaTU.getText() +"'";
         try{
             pst = c.prepareStatement(q);
             pst.executeUpdate();

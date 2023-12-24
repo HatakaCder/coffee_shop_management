@@ -2,6 +2,7 @@ USE qlcf_db;
 
 INSERT INTO NHANVIEN (MANV, HOTEN, GIOITINH, NGAYSINH, SDT, DIACHI)
 VALUES
+('admin', null, null, null, null, null),
 ('NV001', 'Nguyễn Văn A', 'Nam', '1990-01-15', '0901234567', '123 Đường ABC, Quận 1'),
 ('NV002', 'Trần Thị B', 'Nu', '1995-05-20', '0987654321', '456 Đường XYZ, Quận 2'),
 ('NV003', 'Lê Văn C', 'Nam', '1988-12-10', '0912345678', '789 Đường MNO, Quận 3'),
@@ -15,7 +16,7 @@ VALUES
 ('account_nv003', 'password_nv003', 'NV003', 'Nhan vien'),
 ('account_nv004', 'password_nv004', 'NV004', 'Nhan vien'),
 ('account_nv005', 'password_nv005', 'NV005', 'Nhan vien'),
-('admin', 'admin', NULL, 'Admin');
+('admin', 'admin', 'admin', 'Admin');
 
 INSERT INTO DATTRUOC (MADT, TENKH, SDT, SOBAN, TGBATDAU, TGKETTHUC, NGAY, THANHTOAN, GHICHU)
 VALUES 
@@ -32,7 +33,7 @@ VALUES
 
 INSERT INTO NUMGENERATE VALUES (1, 6, 10);
 
-INSERT INTO THUCUONG (MATU, TEN, LOAI, DVT, SOLUONG, GIA)
+INSERT INTO THUCUONG (MATU, TENTU, LOAI, DVT, SOLUONG, GIA)
 VALUES
     ('TC001', 'Cà Phê Đen', 'Cafe', 'Ly', 50, 15000),
     ('TC002', 'Sinh Tố Dưa Hấu', 'Sinh Tố', 'Ly', 30, 25000),
