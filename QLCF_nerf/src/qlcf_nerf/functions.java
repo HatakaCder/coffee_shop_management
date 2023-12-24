@@ -20,7 +20,7 @@ public class functions {
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
             String url = "jdbc:mysql://localhost:3306/qlcf_db";
             String username = "root";
-            String password = "pass123";
+            String password = "123456";
             
             c = DriverManager.getConnection(url, username, password);
         }

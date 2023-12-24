@@ -73,6 +73,47 @@ public class Panel_DatBan extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }
+    private static boolean isNumeric(String str) {
+        return str.matches("\\d+");
+    }
+    
+    private boolean checkNull(){
+        if(tf_madt.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập mã đặt trước!");
+            return false;
+        }
+        else
+        if(tf_tenkh.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập họ tên khách hàng!");
+            return false;
+        }
+        else
+        if(tf_sdt.getText().equals("") || !isNumeric(tf_sdt.getText())){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập số điện thoại khách hàng hoặc nhập không đúng định dạng!");
+            return false;
+        }
+        else   
+        if(tf_tgbatdau.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập thời gian bắt đầu!");
+            return false;
+        }
+        else  
+        if(tf_tgketthuc.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập thời gian kết thúc!");
+            return false;
+        }
+        else
+        if(tf_date.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập ngày!");
+            return false;
+        }
+        else
+        if(!rad_no.isSelected() && !rad_yes.isSelected()){
+            JOptionPane.showMessageDialog(null, "Bạn chưa chọn phương thức thanh toán!");
+            return false;
+        }
+        return true;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -179,24 +220,22 @@ public class Panel_DatBan extends javax.swing.JPanel {
                         .addGap(89, 89, 89)
                         .addComponent(tf_sdt))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addGap(138, 138, 138)
-                        .addComponent(cbx_ban, 0, 243, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addComponent(jLabel10)
                             .addComponent(jLabel6)
-                            .addComponent(jLabel5))
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel4))
                         .addGap(69, 69, 69)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(tf_tgbatdau, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 59, Short.MAX_VALUE)
                                 .addComponent(tf_tgketthuc, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(tf_tenkh)
                             .addComponent(tf_madt)
-                            .addComponent(tf_date))))
+                            .addComponent(tf_date)
+                            .addComponent(cbx_ban, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -214,18 +253,18 @@ public class Panel_DatBan extends javax.swing.JPanel {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(tf_sdt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3))
-                .addGap(12, 12, 12)
+                .addGap(13, 13, 13)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addGap(18, 18, 18)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel4)
+                            .addComponent(cbx_ban, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(15, 15, 15)
                         .addComponent(jLabel5)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel6)
                         .addGap(14, 14, 14))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(cbx_ban, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(tf_tgketthuc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tf_tgbatdau, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))

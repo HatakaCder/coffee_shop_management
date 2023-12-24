@@ -68,11 +68,60 @@ public class Panel_QLNV extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }
+    private static boolean isNumeric(String str) {
+        return str.matches("\\d+");
+    }
+    
     private boolean checkNull(){
-        return false;
+        if(tf_manv.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập mã nhân viên!");
+            return false;
+        }
+        else
+        if(tf_hoten.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập họ tên!");
+            return false;
+        }
+        else
+        if(tf_ngaysinh.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập ngày sinh!");
+            return false;
+        }
+        else   
+        if(!rad_nam.isSelected() && !rad_nu.isSelected()){
+            JOptionPane.showMessageDialog(null, "Bạn chưa chọn giới tính!");
+            return false;
+        }
+        else   
+        if(tf_sdt.getText().equals("") || !isNumeric(tf_sdt.getText())){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập số điện thoại hoặc nhập sai định dạng!");
+            return false;
+        }
+        else  
+        if(tf_diachi.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập địa chỉ!");
+            return false;
+        }
+        else
+        if(tf_taikhoan.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập tài khoản!");
+            return false;
+        }
+        else
+        if(tf_matkhau.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập mật khẩu!");
+            return false;
+        }
+        return true;
     }
     private void themNV(){
-        if (!checkNull()){
+        if (checkNull()){
+            String employeeId = tf_manv.getText();
+            if (kiemTraTonTaiNhanVien(employeeId)) {
+                JOptionPane.showMessageDialog(null, "Nhân viên với mã " + employeeId + " đã tồn tại. Không thể thêm mới.");
+                return;
+            }
+            
             String q2 = "INSERT INTO ACCOUNT VALUES('"+ tf_taikhoan.getText() +"', '" + tf_matkhau.getText() + "', '"+ tf_manv.getText() + "', \'Nhan vien\')";
             String q1 = "INSERT INTO NHANVIEN VALUES('"+tf_manv.getText()+"', '"+ tf_hoten.getText()+"', '"+gender+"', '"+ tf_ngaysinh.getText()+"', '"+tf_sdt.getText()+"', '"+tf_diachi.getText()+"')";
             try{
@@ -88,6 +137,20 @@ public class Panel_QLNV extends javax.swing.JPanel {
             }
         }
     }
+    private boolean kiemTraTonTaiNhanVien(String employeeId) {
+        String query = "SELECT COUNT(*) FROM NHANVIEN WHERE MANV = ?";
+        try {
+            pst = c.prepareStatement(query);
+            pst.setString(1, employeeId);
+            ResultSet resultSet = pst.executeQuery();
+            resultSet.next();
+            int rowCount = resultSet.getInt(1);
+            return rowCount > 0;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+            return false;
+        }
+    }   
     private void xoaNV(){
         int option = JOptionPane.showConfirmDialog(null,"Bạn có chắc chắn muốn xoá?", "Xoá", 2);
         if (option == JOptionPane.YES_OPTION){
@@ -104,18 +167,20 @@ public class Panel_QLNV extends javax.swing.JPanel {
         }
     }
     private void suaNV(){
-        String q1 = "UPDATE NHANVIEN SET HOTEN='" + tf_hoten.getText() +"', GIOITINH='" + gender + "', NGAYSINH='" + tf_ngaysinh.getText() +"', SDT='" + tf_sdt.getText() +"', DIACHI='"+ tf_diachi.getText() + "' WHERE MANV='"+ tf_manv.getText()+"'" ;
-        String q2 = "UPDATE ACCOUNT SET TAIKHOAN='" + tf_taikhoan.getText() +"', MATKHAU='" + tf_matkhau.getText() +"' WHERE MANV='" + tf_manv.getText() +"'";
-        try{
-            pst = c.prepareStatement(q1);
-            pst.executeUpdate();
-            pst = c.prepareStatement(q2);
-            pst.executeUpdate();
-            showQLNV();
-            JOptionPane.showMessageDialog(null, "Sửa nhân viên thành công!");
-        }
-        catch(SQLException e){
-            e.printStackTrace();
+        if (checkNull()){
+            String q1 = "UPDATE NHANVIEN SET HOTEN='" + tf_hoten.getText() +"', GIOITINH='" + gender + "', NGAYSINH='" + tf_ngaysinh.getText() +"', SDT='" + tf_sdt.getText() +"', DIACHI='"+ tf_diachi.getText() + "' WHERE MANV='"+ tf_manv.getText()+"'" ;
+            String q2 = "UPDATE ACCOUNT SET TAIKHOAN='" + tf_taikhoan.getText() +"', MATKHAU='" + tf_matkhau.getText() +"' WHERE MANV='" + tf_manv.getText() +"'";
+            try{
+                pst = c.prepareStatement(q1);
+                pst.executeUpdate();
+                pst = c.prepareStatement(q2);
+                pst.executeUpdate();
+                showQLNV();
+                JOptionPane.showMessageDialog(null, "Sửa nhân viên thành công!");
+            }
+            catch(SQLException e){
+                e.printStackTrace();
+            }
         }
     }
     @SuppressWarnings("unchecked")
