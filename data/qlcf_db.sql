@@ -13,7 +13,7 @@ CREATE TABLE NHANVIEN (
 CREATE TABLE THUCUONG (
 	MATU varchar(10) NOT NULL PRIMARY KEY,
     TEN varchar(50),
-    LOAI varchar(15),
+    LOAI enum("Cafe", "Sinh Tố", "Nước Giải Khát", "Trà", "Đồ Uống"),
     DVT enum('Chai', 'Lon', 'Ly'),
     SOLUONG int,
     GIA long
