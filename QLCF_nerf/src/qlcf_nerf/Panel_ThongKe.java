@@ -4,17 +4,62 @@
  */
 package qlcf_nerf;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author Admin
  */
 public class Panel_ThongKe extends javax.swing.JPanel {
-
+    private Connection c;
+    private PreparedStatement pst;
+    private ResultSet rs;
     /**
      * Creates new form ThongKe_Panel
      */
     public Panel_ThongKe() {
         initComponents();
+        functions f = new functions();
+        c = f.connectDB();
+        showTK();
+    }
+    private void showTK(){
+        String query="SELECT HOADON.*, CHITIETHOADON.MATU, CHITIETHOADON.GIA FROM HOADON JOIN CHITIETHOADON ON HOADON.MAHD = CHITIETHOADON.MAHD";
+        try{
+            pst=c.prepareStatement(query);
+            rs=pst.executeQuery();
+            ResultSetMetaData rsmd=rs.getMetaData();
+            int n = rsmd.getColumnCount();
+            String[] colName = new String[n];
+            for (int i = 0; i<n;i++){
+                colName[i] = rsmd.getColumnName(i+1);
+            }
+            DefaultTableModel dfm= (DefaultTableModel)tableTK.getModel();
+            dfm.setRowCount(0);
+            dfm.setColumnIdentifiers(colName);
+            while(rs.next()){
+                Vector v=new Vector();
+                for(int i=1;i<=n;i++){
+                    v.add(rs.getString("MAHD"));
+                    v.add(rs.getString("THOIGIAN"));
+                    v.add(rs.getString("NGAY"));
+                    v.add(rs.getString("MANV"));
+                    v.add(rs.getString("SOBAN"));
+                    v.add(rs.getString("MATU"));
+                    v.add(rs.getString("GIA"));
+                }
+                dfm.addRow(v);
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -36,7 +81,7 @@ public class Panel_ThongKe extends javax.swing.JPanel {
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tableTK = new javax.swing.JTable();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
 
@@ -110,7 +155,7 @@ public class Panel_ThongKe extends javax.swing.JPanel {
         jLabel2.setFont(new java.awt.Font("Inter", 1, 18)); // NOI18N
         jLabel2.setText("Thống kê doanh thu của quán + date + time:");
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tableTK.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -121,7 +166,7 @@ public class Panel_ThongKe extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tableTK);
 
         jLabel3.setFont(new java.awt.Font("Inter", 1, 16)); // NOI18N
         jLabel3.setText("Tổng hoá đơn bán ra: 0");
@@ -197,7 +242,7 @@ public class Panel_ThongKe extends javax.swing.JPanel {
     private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JRadioButton jRadioButton3;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JTable tableTK;
     // End of variables declaration//GEN-END:variables
 }
