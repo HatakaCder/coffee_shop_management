@@ -28,7 +28,9 @@ public class Panel_BanHang extends javax.swing.JPanel {
     private PreparedStatement pst;
     private ResultSet rs;
     private String date;
-    private long tongtien = 0;
+    private int hour = 0;
+    private int minute = 0;
+    private long tongtien = 0, tienkhach= 0;
     private String manv;
     private int num_hd = 0;
     public Panel_BanHang(Connection c, String username, String manv) {
@@ -70,7 +72,11 @@ public class Panel_BanHang extends javax.swing.JPanel {
     }
     private void loadTime(){
         LocalTime currentTime = LocalTime.now();
-        lbl_time.setText(currentTime.getHour() + ":" + currentTime.getMinute());
+        hour = currentTime.getHour();
+        minute = currentTime.getMinute();
+        String h = (hour >= 10) ? String.valueOf(hour) : "0"+String.valueOf(hour);
+        String m = (minute >= 10) ? String.valueOf(minute) : "0"+String.valueOf(minute);
+        lbl_time.setText(h+ ":" + m);
     }
     private void loadDate(){
         LocalDate currentDate = LocalDate.now();
@@ -146,6 +152,108 @@ public class Panel_BanHang extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }
+    private static boolean isNumeric(String str) {
+        return str.matches("\\d+");
+    }
+    private boolean checkSoLuong(){
+        if(tfSoLuong.getText().isEmpty()){
+            JOptionPane.showMessageDialog(null, "Bạn chưa nhập số lượng.");
+            return false;
+        } 
+        if(!isNumeric(tfSoLuong.getText())){
+            JOptionPane.showMessageDialog(null, "Nhập sai định dạng số lượng.");
+            return false;
+        }
+        String query = "SELECT SOLUONG FROM THUCUONG WHERE TENTU='" + cbTenNuoc.getSelectedItem().toString() + "'";
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            if (rs.next()){
+                if (rs.getInt("SOLUONG") < Integer.parseInt(tfSoLuong.getText())){
+                    JOptionPane.showMessageDialog(null, "Không đủ số lượng của thức uống được chọn để bán.");
+                    return false;
+                }
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+    private boolean checkBan(){
+        String query = "SELECT SOBAN, TGBATDAU, TGKETTHUC, NGAY FROM DATTRUOC WHERE SOBAN=" + cbx_ban.getSelectedItem().toString() + " AND NGAY='" + date +"'";
+        String temptimestart, temptimeend;
+        temptimestart = temptimeend = "";
+        String[] tts_p, tte_p;
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            while(rs.next()){
+                temptimestart = rs.getString("TGBATDAU");
+                temptimeend = rs.getString("TGKETTHUC");
+                tts_p = temptimestart.split(":");
+                tte_p = temptimeend.split(":");
+                if (hour > Integer.parseInt(tts_p[0]) && hour < Integer.parseInt(tte_p[0])) return false;
+                if (hour == Integer.parseInt(tts_p[0]) && minute >= Integer.parseInt(tts_p[1])){
+                    if (hour < Integer.parseInt(tte_p[0])) return false;
+                    if (hour == Integer.parseInt(tte_p[0]) && minute <= Integer.parseInt(tte_p[1])) return false;
+                }
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
+        return true;
+    }
+    private int getMaDT(){
+        String query = "SELECT G_DATTRUOC FROM NUMGENERATE LIMIT 1";
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            if (rs.next()){
+                return rs.getInt("G_DATTRUOC");
+            }
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    private void addDatTruoc(){
+        int madt = getMaDT();
+        String q = "INSERT INTO DATTRUOC (MADT, SOBAN, TGBATDAU, TGKETTHUC, NGAY) VALUES('"+ "DT" + String.valueOf(madt)+"', '"+ cbx_ban.getSelectedItem().toString()+"', '"+ hour + ":" + minute+"', '"+ "24:00:00"+"', '"+ date +"')";
+        try{
+            pst = c.prepareStatement(q);
+            pst.executeUpdate();
+            q = "UPDATE NUMGENERATE SET G_DATTRUOC=" + String.valueOf(madt+1);
+            pst = c.prepareStatement(q);
+            pst.executeUpdate();
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }
+    private boolean exceptionThem(){
+        if(!checkSoLuong()) return false;
+        return true;
+    }
+    private boolean exceptionTinhTien(){
+        if (!tf_tiennhan.getText().equals("")){
+            tienkhach = Long.parseLong(tf_tiennhan.getText())-tongtien;
+            if (tienkhach < 0) {
+                JOptionPane.showMessageDialog(null, "Không đủ tiền để trả!");
+                return false;
+            }  
+        } else {
+            JOptionPane.showMessageDialog(null, "Không được bỏ trống tiền khách trả.");
+            return false;
+        }
+        if(!checkBan()){
+            JOptionPane.showMessageDialog(null, "Bàn bạn đặt không hợp lệ, vui lòng chọn bàn khác.");
+            return false;
+        }
+        return true;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -175,6 +283,7 @@ public class Panel_BanHang extends javax.swing.JPanel {
         tbl_tu = new javax.swing.JTable();
         btnXoa = new javax.swing.JButton();
         btnThem = new javax.swing.JButton();
+        btn_reset = new javax.swing.JButton();
         tfSoLuong = new javax.swing.JTextField();
         jLabel15 = new javax.swing.JLabel();
         cbx_ban = new javax.swing.JComboBox<>();
@@ -279,7 +388,7 @@ public class Panel_BanHang extends javax.swing.JPanel {
         jScrollPane3.setViewportView(tbl_tu);
 
         btnXoa.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
-        btnXoa.setText("Xoá");
+        btnXoa.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/x-mark.png"))); // NOI18N
         btnXoa.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnXoaActionPerformed(evt);
@@ -287,10 +396,18 @@ public class Panel_BanHang extends javax.swing.JPanel {
         });
 
         btnThem.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
-        btnThem.setText("Thêm");
+        btnThem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/add.png"))); // NOI18N
         btnThem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnThemActionPerformed(evt);
+            }
+        });
+
+        btn_reset.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        btn_reset.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/reset.png"))); // NOI18N
+        btn_reset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_resetActionPerformed(evt);
             }
         });
 
@@ -300,14 +417,16 @@ public class Panel_BanHang extends javax.swing.JPanel {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 444, Short.MAX_VALUE)
                     .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(btnThem, javax.swing.GroupLayout.PREFERRED_SIZE, 203, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
-                        .addComponent(btnXoa, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(btnThem, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(38, 38, 38)
+                                .addComponent(btnXoa, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_reset, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -316,7 +435,8 @@ public class Panel_BanHang extends javax.swing.JPanel {
                 .addContainerGap(17, Short.MAX_VALUE)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnXoa, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnThem, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnThem, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_reset, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(12, 12, 12)
                 .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -512,7 +632,9 @@ public class Panel_BanHang extends javax.swing.JPanel {
         });
 
         btn_tinhtien.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        btn_tinhtien.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/hand.png"))); // NOI18N
         btn_tinhtien.setText("Tính tiền");
+        btn_tinhtien.setIconTextGap(20);
         btn_tinhtien.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_tinhtienActionPerformed(evt);
@@ -520,7 +642,9 @@ public class Panel_BanHang extends javax.swing.JPanel {
         });
 
         jButton2.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/printer.png"))); // NOI18N
         jButton2.setText("In hoá đơn");
+        jButton2.setIconTextGap(20);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -597,47 +721,52 @@ public class Panel_BanHang extends javax.swing.JPanel {
 
     private void tf_tiennhanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf_tiennhanActionPerformed
         // TODO add your handling code here:
-        long money = 0;
-        if (!tf_tiennhan.getText().equals("")){
-            money = Long.parseLong(tf_tiennhan.getText())-tongtien;
-            if (money < 0) JOptionPane.showMessageDialog(null, "Không đủ tiền để trả!");
+        tienkhach = 0;
+        if (!tf_tiennhan.getText().isEmpty()){
+            tienkhach = Long.parseLong(tf_tiennhan.getText())-tongtien;
+            if (tienkhach < 0) JOptionPane.showMessageDialog(null, "Không đủ tiền để trả!");
             else {
-                lbl_tienthua.setText(String.valueOf(money) + " VND");
+                lbl_tienthua.setText(String.valueOf(tienkhach) + " VND");
             }
         }
     }//GEN-LAST:event_tf_tiennhanActionPerformed
 
     private void btn_tinhtienActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_tinhtienActionPerformed
         // TODO add your handling code here:
-        String q1 = "INSERT INTO HOADON VALUES('" +lbMaHD.getText()+ "', '" + lbl_time.getText() + "', '" + date + "', '" + manv + "', '" + cbx_ban.getSelectedItem().toString() + "')";
-        String q2 = "INSERT INTO CHITIETHOADON VALUES('" + lbMaHD.getText() + "', '";
-        String q3 = "SELECT SOLUONG FROM THUCUONG WHERE MATU='";
-        String q4 = "UPDATE THUCUONG SET SOLUONG=";
-        String final_q2, final_q3, final_q4;
-        int sl = 0;
-        try{
-            pst = c.prepareStatement(q1);
-            pst.executeUpdate();
-            increaseHD();
-            
-            int rowCount = tbl_tu.getRowCount();
-            for (int row=0; row < rowCount; row++){
-                final_q2 = q2 + tbl_tu.getValueAt(row, 0) + "', " + tbl_tu.getValueAt(row, 4) + ", " + tbl_tu.getValueAt(row, 5) + ")";
-                pst = c.prepareStatement(final_q2);
+        if (exceptionTinhTien()){
+            String q1 = "INSERT INTO HOADON VALUES('" +lbMaHD.getText()+ "', '" + lbl_time.getText() + "', '" + date + "', '" + manv + "', '" + cbx_ban.getSelectedItem().toString() + "')";
+            String q2 = "INSERT INTO CHITIETHOADON VALUES('" + lbMaHD.getText() + "', '";
+            String q3 = "SELECT SOLUONG FROM THUCUONG WHERE MATU='";
+            String q4 = "UPDATE THUCUONG SET SOLUONG=";
+            String final_q2, final_q3, final_q4;
+            int sl = 0;
+            try{
+                pst = c.prepareStatement(q1);
                 pst.executeUpdate();
-                final_q3 = q3 + tbl_tu.getValueAt(row, 0) + "'";
-                pst = c.prepareStatement(final_q3);
-                rs = pst.executeQuery();
-                if (rs.next()){
-                    sl = rs.getInt("SOLUONG");
+                increaseHD();
+
+                int rowCount = tbl_tu.getRowCount();
+                for (int row=0; row < rowCount; row++){
+                    final_q2 = q2 + tbl_tu.getValueAt(row, 0) + "', " + tbl_tu.getValueAt(row, 4) + ", " + tbl_tu.getValueAt(row, 5) + ")";
+                    pst = c.prepareStatement(final_q2);
+                    pst.executeUpdate();
+                    final_q3 = q3 + tbl_tu.getValueAt(row, 0) + "'";
+                    pst = c.prepareStatement(final_q3);
+                    rs = pst.executeQuery();
+                    if (rs.next()){
+                        sl = rs.getInt("SOLUONG");
+                    }
+                    final_q4 = q4 + String.valueOf(sl - Integer.parseInt(tbl_tu.getValueAt(row, 4).toString())) + " WHERE MATU='" + tbl_tu.getValueAt(row, 0) + "'";
+                    pst = c.prepareStatement(final_q4);
+                    pst.executeUpdate();
                 }
-                final_q4 = q4 + String.valueOf(sl - Integer.parseInt(tbl_tu.getValueAt(row, 4).toString())) + " WHERE MATU='" + tbl_tu.getValueAt(row, 0) + "'";
-                pst = c.prepareStatement(final_q4);
-                pst.executeUpdate();
+                addDatTruoc();
+                JOptionPane.showMessageDialog(null, "Tính tiền thành công.");
+                load();
+            } 
+            catch(SQLException e){
+                e.printStackTrace();
             }
-        } 
-        catch(SQLException e){
-            e.printStackTrace();
         }
     }//GEN-LAST:event_btn_tinhtienActionPerformed
 
@@ -657,30 +786,31 @@ public class Panel_BanHang extends javax.swing.JPanel {
 
     private void btnThemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThemActionPerformed
         // TODO add your handling code here:
-        String query = "SELECT * FROM THUCUONG WHERE TENTU='" + cbTenNuoc.getSelectedItem().toString() + "'";
-        long giatemp = 0;
-        try{
-            pst = c.prepareStatement(query);
-            rs = pst.executeQuery();
-            DefaultTableModel dfm= (DefaultTableModel)tbl_tu.getModel();
-            if(rs.next()){
-                Vector v = new Vector();
-                
-                v.add(rs.getString("MATU"));
-                v.add(rs.getString("TENTU"));
-                v.add(rs.getString("LOAI"));
-                v.add(rs.getString("DVT"));
-                v.add(tfSoLuong.getText());
-                giatemp = rs.getLong("GIA")*Long.parseLong(tfSoLuong.getText());
-                tongtien += giatemp;
-                lbl_tongtien.setText(String.valueOf(tongtien) + " VND");
-                v.add(giatemp);
-                dfm.addRow(v);
+        if (exceptionThem()){
+            String query = "SELECT * FROM THUCUONG WHERE TENTU='" + cbTenNuoc.getSelectedItem().toString() + "'";
+            long giatemp = 0;
+            try{
+                pst = c.prepareStatement(query);
+                rs = pst.executeQuery();
+                DefaultTableModel dfm= (DefaultTableModel)tbl_tu.getModel();
+                if(rs.next()){
+                    Vector v = new Vector();
+
+                    v.add(rs.getString("MATU"));
+                    v.add(rs.getString("TENTU"));
+                    v.add(rs.getString("LOAI"));
+                    v.add(rs.getString("DVT"));
+                    v.add(tfSoLuong.getText());
+                    giatemp = rs.getLong("GIA")*Long.parseLong(tfSoLuong.getText());
+                    tongtien += giatemp;
+                    lbl_tongtien.setText(String.valueOf(tongtien) + " VND");
+                    v.add(giatemp);
+                    dfm.addRow(v);
+                }
+            }catch(SQLException e){
+                e.printStackTrace();
             }
-        }catch(SQLException e){
-            e.printStackTrace();
         }
-        
     }//GEN-LAST:event_btnThemActionPerformed
 
     private void tbl_tuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_tuMouseClicked
@@ -710,10 +840,16 @@ public class Panel_BanHang extends javax.swing.JPanel {
         
     }//GEN-LAST:event_tf_tiennhanPropertyChange
 
+    private void btn_resetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_resetActionPerformed
+        // TODO add your handling code here:
+        load();
+    }//GEN-LAST:event_btn_resetActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnThem;
     private javax.swing.JButton btnXoa;
+    private javax.swing.JButton btn_reset;
     private javax.swing.JButton btn_tinhtien;
     private javax.swing.JComboBox<String> cbLoaiNuoc;
     private javax.swing.JComboBox<String> cbTenNuoc;

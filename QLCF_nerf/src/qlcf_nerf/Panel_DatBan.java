@@ -13,6 +13,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import java.time.*;
 
 /**
  *
@@ -23,6 +24,7 @@ public class Panel_DatBan extends javax.swing.JPanel {
     private Connection c;
     private PreparedStatement pst;
     private ResultSet rs;
+    private String date;
     /**
      * Creates new form DatBan_Panel
      */
@@ -30,6 +32,9 @@ public class Panel_DatBan extends javax.swing.JPanel {
         initComponents();
         functions f = new functions();
         c = f.connectDB();
+        rad_no.setSelected(true);
+        LocalDate currentDate = LocalDate.now();
+        date = currentDate.getYear() + "-" + currentDate.getMonthValue() + "-" + currentDate.getDayOfMonth();
         addBan();
         showDatTruoc();
     }
@@ -39,8 +44,23 @@ public class Panel_DatBan extends javax.swing.JPanel {
             cbx_ban.addItem(String.valueOf(i));
         }
     }
+    private int getMaDatTruoc(){
+        String query = "SELECT G_DATTRUOC FROM NUMGENERATE LIMIT 1";
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            if (rs.next()){
+                return rs.getInt("G_DATTRUOC");
+            }
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
     private void showDatTruoc(){
-        String query="SELECT * FROM DATTRUOC ORDER BY NGAY ASC, TGBATDAU ASC";
+        int madt = getMaDatTruoc();
+        tf_madt.setText("DT" + String.valueOf(madt));
+        String query="SELECT * FROM DATTRUOC WHERE TENKH IS NOT NULL AND NGAY >= '" + date + "' ORDER BY NGAY ASC, TGBATDAU ASC";
         try{
             pst=c.prepareStatement(query);
             rs=pst.executeQuery();
@@ -113,6 +133,57 @@ public class Panel_DatBan extends javax.swing.JPanel {
             return false;
         }
         return true;
+    }
+    private void search(){
+        String query = "";
+        if (tf_search.getText().startsWith("DT")){
+            query = "SELECT * FROM DATTRUOC WHERE MADT='" + tf_search.getText() + "'";
+        }
+        else {
+            query = "SELECT * FROM DATTRUOC WHERE TENKH='" + tf_search.getText() + "'";
+        }
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            ResultSetMetaData rsmd=rs.getMetaData();
+            int n = rsmd.getColumnCount();
+            String[] colName = new String[n];
+            for (int i = 0; i<n;i++){
+                colName[i] = rsmd.getColumnName(i+1);
+            }
+            DefaultTableModel dfm= (DefaultTableModel)tbl_ban.getModel();
+            dfm.setRowCount(0);
+            dfm.setColumnIdentifiers(colName);
+            while(rs.next()){
+                Vector v=new Vector();
+                for(int i=1;i<=n;i++){
+                    v.add(rs.getString("MADT"));
+                    v.add(rs.getString("TENKH"));
+                    v.add(rs.getString("SDT"));
+                    v.add(rs.getString("SOBAN"));
+                    v.add(rs.getString("TGBATDAU"));
+                    v.add(rs.getString("TGKETTHUC"));
+                    v.add(rs.getString("NGAY"));
+                    v.add(rs.getString("THANHTOAN"));
+                    v.add(rs.getString("GHICHU"));
+                }
+                dfm.addRow(v);
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+    private void increateNumDT(){
+        int madt = getMaDatTruoc();
+        String q = "UPDATE NUMGENERATE SET G_DATTRUOC=" + String.valueOf(madt+1);
+        try{
+            pst = c.prepareStatement(q);
+            pst.executeUpdate();
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -206,6 +277,7 @@ public class Panel_DatBan extends javax.swing.JPanel {
         jLabel10.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
         jLabel10.setText("Mã đặt trước:");
 
+        tf_madt.setEditable(false);
         tf_madt.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -331,6 +403,11 @@ public class Panel_DatBan extends javax.swing.JPanel {
         btn_reset.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         btn_reset.setIconTextGap(20);
         btn_reset.setMargin(new java.awt.Insets(2, 50, 3, 14));
+        btn_reset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_resetActionPerformed(evt);
+            }
+        });
         jPanel10.add(btn_reset);
 
         jLabel7.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
@@ -443,9 +520,19 @@ public class Panel_DatBan extends javax.swing.JPanel {
         jScrollPane2.setViewportView(tbl_ban);
 
         tf_search.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        tf_search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tf_searchActionPerformed(evt);
+            }
+        });
 
         btn_search.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/search.png"))); // NOI18N
         btn_search.setBorder(null);
+        btn_search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_searchActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -456,8 +543,8 @@ public class Panel_DatBan extends javax.swing.JPanel {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(jLabel9)
-                        .addGap(203, 203, 203)
-                        .addComponent(tf_search, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(208, 208, 208)
+                        .addComponent(tf_search, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(btn_search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 934, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -507,6 +594,8 @@ public class Panel_DatBan extends javax.swing.JPanel {
             pst.executeUpdate();
             showDatTruoc();
             JOptionPane.showMessageDialog(null, "Đặt trước thành công!");
+            increateNumDT();
+            showDatTruoc();
         }
         catch(SQLException e){
             JOptionPane.showMessageDialog(null, e.getMessage());
@@ -570,6 +659,21 @@ public class Panel_DatBan extends javax.swing.JPanel {
             }
         }
     }//GEN-LAST:event_btn_xoaActionPerformed
+
+    private void btn_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_searchActionPerformed
+        // TODO add your handling code here:
+        search();
+    }//GEN-LAST:event_btn_searchActionPerformed
+
+    private void tf_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf_searchActionPerformed
+        // TODO add your handling code here:
+        search();
+    }//GEN-LAST:event_tf_searchActionPerformed
+
+    private void btn_resetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_resetActionPerformed
+        // TODO add your handling code here:
+        showDatTruoc();
+    }//GEN-LAST:event_btn_resetActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
