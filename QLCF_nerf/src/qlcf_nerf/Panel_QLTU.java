@@ -349,7 +349,11 @@ public class Panel_QLTU extends javax.swing.JPanel {
         jPanel10.setLayout(new java.awt.GridLayout(2, 2, 10, 10));
 
         btn_them.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        btn_them.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/add.png"))); // NOI18N
         btn_them.setText("Thêm");
+        btn_them.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btn_them.setIconTextGap(20);
+        btn_them.setMargin(new java.awt.Insets(2, 60, 3, 14));
         btn_them.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_themActionPerformed(evt);
@@ -358,7 +362,11 @@ public class Panel_QLTU extends javax.swing.JPanel {
         jPanel10.add(btn_them);
 
         btn_xoa.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        btn_xoa.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/x-mark.png"))); // NOI18N
         btn_xoa.setText("Xoá");
+        btn_xoa.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btn_xoa.setIconTextGap(20);
+        btn_xoa.setMargin(new java.awt.Insets(2, 60, 3, 14));
         btn_xoa.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_xoaActionPerformed(evt);
@@ -367,7 +375,11 @@ public class Panel_QLTU extends javax.swing.JPanel {
         jPanel10.add(btn_xoa);
 
         btn_sua.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        btn_sua.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/edit-button.png"))); // NOI18N
         btn_sua.setText("Sửa");
+        btn_sua.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btn_sua.setIconTextGap(20);
+        btn_sua.setMargin(new java.awt.Insets(2, 60, 3, 14));
         btn_sua.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_suaActionPerformed(evt);
@@ -376,7 +388,11 @@ public class Panel_QLTU extends javax.swing.JPanel {
         jPanel10.add(btn_sua);
 
         btn_reset.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        btn_reset.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/reset.png"))); // NOI18N
         btn_reset.setText("Reset");
+        btn_reset.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btn_reset.setIconTextGap(20);
+        btn_reset.setMargin(new java.awt.Insets(2, 60, 3, 14));
         btn_reset.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_resetActionPerformed(evt);

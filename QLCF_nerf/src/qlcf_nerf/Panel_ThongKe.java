@@ -160,7 +160,7 @@ public class Panel_ThongKe extends javax.swing.JPanel {
     }
     
     private void showTKNam(){
-        String query = "SELECT YEAR(T.NGAY) AS NAM, SUM(TONGGIATRIHOADON) AS DOANHTHU FROM (SELECT HOADON.MAHD, HOADON.MANV, HOADON.THOIGIAN, HOADON.NGAY, SUM(CHITIETHOADON.GIA) AS TONGGIATRIHOADON FROM HOADON JOIN CHITIETHOADON ON CHITIETHOADON.MAHD = HOADON.MAHD GROUP BY HOADON.MAHD) AS T WHERE YEAR(NGAY)='" + tf_date.getText() +"' GROUP BY NAM";
+        String query = "SELECT MONTH(T.NGAY) AS THANG, SUM(TONGGIATRIHOADON) AS DOANHTHU FROM (SELECT HOADON.MAHD, HOADON.MANV, HOADON.THOIGIAN, HOADON.NGAY, SUM(CHITIETHOADON.GIA) AS TONGGIATRIHOADON FROM HOADON JOIN CHITIETHOADON ON CHITIETHOADON.MAHD = HOADON.MAHD GROUP BY HOADON.MAHD) AS T WHERE YEAR(NGAY)='" + tf_date.getText() +"' GROUP BY THANG";
         try{
             pst=c.prepareStatement(query);
             rs=pst.executeQuery();
@@ -175,7 +175,7 @@ public class Panel_ThongKe extends javax.swing.JPanel {
             dfm.setColumnIdentifiers(colName);
             while(rs.next()){
                 Vector v=new Vector();
-                v.add(rs.getString("NAM"));
+                v.add(rs.getString("THANG"));
                 v.add(rs.getString("DOANHTHU"));
                 dfm.addRow(v);
             }

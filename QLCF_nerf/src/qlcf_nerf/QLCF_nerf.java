@@ -15,9 +15,13 @@ public class QLCF_nerf {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        MainWindoww a = new MainWindoww();
-        a.setLocationRelativeTo(null);
-        a.setVisible(true);
+        Login l = new Login();
+        l.setLocationRelativeTo(null);
+        l.setVisible(true);
+//        MainWindoww a = new MainWindoww();
+//        a.setLocationRelativeTo(null);
+//        a.setVisible(true);
+            
     }
     
 }

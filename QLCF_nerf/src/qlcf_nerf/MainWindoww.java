@@ -8,6 +8,9 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import javax.swing.*;
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  *
@@ -24,19 +27,47 @@ public class MainWindoww extends javax.swing.JFrame {
     private Color btnentercolor = Color.decode("#ECECEC");
     private int btnindexselected=0;
     private Connection c;
+    private String username;
+    private String manv;
+    private PreparedStatement pst;
+    private ResultSet rs;
+    private String loai;
     
-    public MainWindoww() {
+    public MainWindoww(String username, String manv, String loai) {
         initComponents();
         functions f = new functions();
+        this.username=username;
+        this.manv=manv;
+        this.loai = loai;
         c = f.connectDB();
+        
         load(); 
     }
-    public void load(){
+    private String getTenNV(){
+        String query = "SELECT * FROM NHANVIEN WHERE MANV='" + manv + "'";
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            if(rs.next()) {
+                
+                if (rs.getString("HOTEN") == null) return "admin";
+                return rs.getString("HOTEN");
+            }
+            
+            
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return "";
+    }
+    private void load(){
+        lbl_header.setText("Trang chủ");
+        lbl_username.setText(getTenNV());
         btn_home.setBackground(btncolor);
         cl = new CardLayout();
         usercontrol.setLayout(cl);
-        usercontrol.add(new Panel_TrangChu(), "Trang chu");
-        usercontrol.add(new Panel_BanHang(c, "admin", "admin"), "Ban hang"); //tam thoi
+        usercontrol.add(new Panel_TrangChu(c), "Trang chu");
+        usercontrol.add(new Panel_BanHang(c, getTenNV(), manv), "Ban hang");
         usercontrol.add(new Panel_QLTU(), "QLTU");
         usercontrol.add(new Panel_QLNV(), "QLNV");
         usercontrol.add(new Panel_DatBan(), "Dat ban");
@@ -79,7 +110,6 @@ public class MainWindoww extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Coffee shop management");
         setMinimumSize(new java.awt.Dimension(1300, 780));
-        setPreferredSize(new java.awt.Dimension(1300, 780));
 
         mainwindow.setBackground(new java.awt.Color(196, 164, 132));
 
@@ -332,6 +362,11 @@ public class MainWindoww extends javax.swing.JFrame {
 
         btn_information.setBackground(new java.awt.Color(255, 255, 255));
         btn_information.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        btn_information.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btn_informationMouseClicked(evt);
+            }
+        });
 
         jLabel8.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
         jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/information.png"))); // NOI18N
@@ -401,6 +436,11 @@ public class MainWindoww extends javax.swing.JFrame {
         lbl_username.setText("Username");
 
         btn_signout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/logout.png"))); // NOI18N
+        btn_signout.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btn_signoutMouseClicked(evt);
+            }
+        });
 
         javax.swing.GroupLayout headerLayout = new javax.swing.GroupLayout(header);
         header.setLayout(headerLayout);
@@ -433,13 +473,10 @@ public class MainWindoww extends javax.swing.JFrame {
             mainwindowLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(mainwindowLayout.createSequentialGroup()
                 .addComponent(nav, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(mainwindowLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(mainwindowLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(header, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(mainwindowLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(usercontrol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(header, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(usercontrol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         mainwindowLayout.setVerticalGroup(
@@ -497,6 +534,10 @@ public class MainWindoww extends javax.swing.JFrame {
 
     private void btn_qltuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btn_qltuMouseClicked
         // TODO add your handling code here:
+        if (loai.equals("Nhan vien")){
+            JOptionPane.showMessageDialog(null, "Bạn không có quyền này!");
+            return;
+        }
         btn_qltu.setBackground(btncolor);
         btnindexselected = 4;
         
@@ -512,6 +553,10 @@ public class MainWindoww extends javax.swing.JFrame {
 
     private void btn_qlnvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btn_qlnvMouseClicked
         // TODO add your handling code here:
+        if (loai.equals("Nhan vien")){
+            JOptionPane.showMessageDialog(null, "Bạn không có quyền này!");
+            return;
+        }
         btn_qlnv.setBackground(btncolor);
         btnindexselected = 3;
         
@@ -639,6 +684,18 @@ public class MainWindoww extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btn_thongkeMouseExited
 
+    private void btn_informationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btn_informationMouseClicked
+        // TODO add your handling code here:
+        About a = new About();
+        a.setLocationRelativeTo(null);
+        a.setVisible(true);
+    }//GEN-LAST:event_btn_informationMouseClicked
+
+    private void btn_signoutMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btn_signoutMouseClicked
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_btn_signoutMouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -669,7 +726,7 @@ public class MainWindoww extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainWindoww().setVisible(true);
+                
             }
         });
     }
