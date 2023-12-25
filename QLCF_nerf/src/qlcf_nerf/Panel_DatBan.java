@@ -96,38 +96,58 @@ public class Panel_DatBan extends javax.swing.JPanel {
     private static boolean isNumeric(String str) {
         return str.matches("\\d+");
     }
-    
+    private boolean checkTime(int h, int m){
+        if (h > 23) return false;
+        if (m > 59) return false;
+        return true;
+    }
+    private boolean checkAdv(){
+        try{
+            String[] tgbd = tf_tgbatdau.getText().split(":");
+            String[] tgkt = tf_tgketthuc.getText().split(":");
+            if (Integer.parseInt(tgbd[0]) > Integer.parseInt(tgkt[0])){
+                return false;
+            }
+            if (!checkTime(Integer.parseInt(tgbd[0]), Integer.parseInt(tgbd[1])) || !checkTime(Integer.parseInt(tgkt[0]), Integer.parseInt(tgkt[1])))return false;
+            if (Integer.parseInt(tgbd[0]) == Integer.parseInt(tgkt[0])){
+                if(Integer.parseInt(tgbd[1]) > Integer.parseInt(tgkt[1]))return false;
+            }
+        } catch (NumberFormatException e){
+            return false;
+        }
+        return true;
+    }
     private boolean checkNull(){
         if(tf_madt.getText().equals("")){
             JOptionPane.showMessageDialog(null, "Bạn chưa nhập mã đặt trước!");
             return false;
         }
-        else
+       
         if(tf_tenkh.getText().equals("")){
             JOptionPane.showMessageDialog(null, "Bạn chưa nhập họ tên khách hàng!");
             return false;
         }
-        else
+        
         if(tf_sdt.getText().equals("") || !isNumeric(tf_sdt.getText())){
             JOptionPane.showMessageDialog(null, "Bạn chưa nhập số điện thoại khách hàng hoặc nhập không đúng định dạng!");
             return false;
         }
-        else   
+           
         if(tf_tgbatdau.getText().equals("")){
             JOptionPane.showMessageDialog(null, "Bạn chưa nhập thời gian bắt đầu!");
             return false;
         }
-        else  
+          
         if(tf_tgketthuc.getText().equals("")){
             JOptionPane.showMessageDialog(null, "Bạn chưa nhập thời gian kết thúc!");
             return false;
         }
-        else
+        if (!checkAdv()) return false;
         if(tf_date.getText().equals("")){
             JOptionPane.showMessageDialog(null, "Bạn chưa nhập ngày!");
             return false;
         }
-        else
+        
         if(!rad_no.isSelected() && !rad_yes.isSelected()){
             JOptionPane.showMessageDialog(null, "Bạn chưa chọn phương thức thanh toán!");
             return false;
@@ -174,7 +194,7 @@ public class Panel_DatBan extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }
-    private void increateNumDT(){
+    private void increaseNumDT(){
         int madt = getMaDatTruoc();
         String q = "UPDATE NUMGENERATE SET G_DATTRUOC=" + String.valueOf(madt+1);
         try{
@@ -185,6 +205,22 @@ public class Panel_DatBan extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }
+    private boolean kiemTraTonTaiDT(String id) {
+        String query = "SELECT COUNT(*) FROM DATTRUOC WHERE MADT = ?";
+        try {
+            pst = c.prepareStatement(query);
+            pst.setString(1, id);
+            ResultSet resultSet = pst.executeQuery();
+            resultSet.next();
+            int rowCount = resultSet.getInt(1);
+            return rowCount > 0;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+            return false;
+        }
+    }   
+
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -588,13 +624,17 @@ public class Panel_DatBan extends javax.swing.JPanel {
     }//GEN-LAST:event_rad_yesActionPerformed
 
     private void btn_themActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_themActionPerformed
+        if (kiemTraTonTaiDT(tf_madt.getText())) {
+            JOptionPane.showMessageDialog(null, "Mã đặt trước " + tf_madt.getText() + " đã tồn tại. Không thể thêm mới.");
+            return;
+        }
         String q = "INSERT INTO DATTRUOC VALUES('"+tf_madt.getText()+"', '"+ tf_tenkh.getText()+"', '"+ tf_sdt.getText()+"', '"+cbx_ban.getSelectedItem().toString()+"', '"+ tf_tgbatdau.getText()+"', '"+tf_tgketthuc.getText()+"', '"+tf_date.getText()+ "', '" + tratruoc +"', '" + txt_note.getText() +"')";
         try{
             pst = c.prepareStatement(q);
             pst.executeUpdate();
             showDatTruoc();
             JOptionPane.showMessageDialog(null, "Đặt trước thành công!");
-            increateNumDT();
+            increaseNumDT();
             showDatTruoc();
         }
         catch(SQLException e){

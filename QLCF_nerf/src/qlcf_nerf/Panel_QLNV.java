@@ -25,6 +25,7 @@ public class Panel_QLNV extends javax.swing.JPanel {
         initComponents();
         functions f = new functions();
         c = f.connectDB();
+        rad_nam.setSelected(true);
         showQLNV();
     }
     
@@ -35,8 +36,36 @@ public class Panel_QLNV extends javax.swing.JPanel {
      */
     
     // custom functions
+    private int getMaNV(){
+        String query = "SELECT G_NHANVIEN FROM NUMGENERATE LIMIT 1";
+        try{
+            pst = c.prepareStatement(query);
+            rs = pst.executeQuery();
+            if (rs.next()){
+                return rs.getInt("G_NHANVIEN");
+            }
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    private void increaseNumNV(){
+        int manv = getMaNV();
+        String q = "UPDATE NUMGENERATE SET G_NHANVIEN=" + String.valueOf(manv+1);
+        try{
+            pst = c.prepareStatement(q);
+            pst.executeUpdate();
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+    
     private void showQLNV(){
-        String query="SELECT NHANVIEN.*, ACCOUNT.TAIKHOAN, ACCOUNT.MATKHAU FROM NHANVIEN JOIN ACCOUNT ON NHANVIEN.MANV = ACCOUNT.MANV";
+        
+        int manv = getMaNV();
+        tf_manv.setText("NV" + String.valueOf(manv));
+        String query="SELECT NHANVIEN.*, ACCOUNT.TAIKHOAN, ACCOUNT.MATKHAU FROM NHANVIEN JOIN ACCOUNT ON NHANVIEN.MANV = ACCOUNT.MANV WHERE HOTEN IS NOT NULL";
         try{
             pst=c.prepareStatement(query);
             rs=pst.executeQuery();
@@ -121,7 +150,10 @@ public class Panel_QLNV extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, "Nhân viên với mã " + employeeId + " đã tồn tại. Không thể thêm mới.");
                 return;
             }
-            
+            if (kiemtraTaiKhoan(tf_taikhoan.getText())){
+                JOptionPane.showMessageDialog(null, "Tài khoản " + tf_taikhoan.getText() + " đã tồn tại. Không thể thêm mới.");
+                return;
+            }
             String q2 = "INSERT INTO ACCOUNT VALUES('"+ tf_taikhoan.getText() +"', '" + tf_matkhau.getText() + "', '"+ tf_manv.getText() + "', \'Nhan vien\')";
             String q1 = "INSERT INTO NHANVIEN VALUES('"+tf_manv.getText()+"', '"+ tf_hoten.getText()+"', '"+gender+"', '"+ tf_ngaysinh.getText()+"', '"+tf_sdt.getText()+"', '"+tf_diachi.getText()+"')";
             try{
@@ -130,6 +162,7 @@ public class Panel_QLNV extends javax.swing.JPanel {
                 pst = c.prepareStatement(q2);
                 pst.executeUpdate();
                 showQLNV();
+                increaseNumNV();
                 JOptionPane.showMessageDialog(null, "Thêm nhân viên thành công!");
             }
             catch(SQLException e){
@@ -151,6 +184,20 @@ public class Panel_QLNV extends javax.swing.JPanel {
             return false;
         }
     }   
+    private boolean kiemtraTaiKhoan(String id){
+        String query = "SELECT COUNT(*) FROM ACCOUNT WHERE TAIKHOAN = ?";
+        try {
+            pst = c.prepareStatement(query);
+            pst.setString(1, id);
+            ResultSet resultSet = pst.executeQuery();
+            resultSet.next();
+            int rowCount = resultSet.getInt(1);
+            return rowCount > 0;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+            return false;
+        }
+    }
     private void xoaNV(){
         int option = JOptionPane.showConfirmDialog(null,"Bạn có chắc chắn muốn xoá?", "Xoá", 2);
         if (option == JOptionPane.YES_OPTION){
@@ -181,6 +228,45 @@ public class Panel_QLNV extends javax.swing.JPanel {
             catch(SQLException e){
                 e.printStackTrace();
             }
+        }
+    }
+    private void search(){
+        String query = "";
+        if (tf_search.getText().startsWith("NV")){
+            query = "SELECT NHANVIEN.*, ACCOUNT.TAIKHOAN, ACCOUNT.MATKHAU FROM NHANVIEN JOIN ACCOUNT ON NHANVIEN.MANV = ACCOUNT.MANV WHERE NHANVIEN.MANV='" + tf_search.getText() + "'";
+        }
+        else {
+            query = "SELECT NHANVIEN.*, ACCOUNT.TAIKHOAN, ACCOUNT.MATKHAU FROM NHANVIEN JOIN ACCOUNT ON NHANVIEN.MANV = ACCOUNT.MANV WHERE HOTEN='" + tf_search.getText() + "'";
+        }
+        try{
+            pst=c.prepareStatement(query);
+            rs=pst.executeQuery();
+            ResultSetMetaData rsmd=rs.getMetaData();
+            int n = rsmd.getColumnCount();
+            String[] colName = new String[n];
+            for (int i = 0; i<n;i++){
+                colName[i] = rsmd.getColumnName(i+1);
+            }
+            DefaultTableModel dfm= (DefaultTableModel)tbl_nv.getModel();
+            dfm.setRowCount(0);
+            dfm.setColumnIdentifiers(colName);
+            while(rs.next()){
+                Vector v=new Vector();
+                for(int i=1;i<=n;i++){
+                    v.add(rs.getString("MANV"));
+                    v.add(rs.getString("HOTEN"));
+                    v.add(rs.getString("GIOITINH"));
+                    v.add(rs.getString("NGAYSINH"));
+                    v.add(rs.getString("SDT"));
+                    v.add(rs.getString("DIACHI"));
+                    v.add(rs.getString("TAIKHOAN"));
+                    v.add(rs.getString("MATKHAU"));
+                }
+                dfm.addRow(v);
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
         }
     }
     @SuppressWarnings("unchecked")
@@ -218,6 +304,8 @@ public class Panel_QLNV extends javax.swing.JPanel {
         jLabel35 = new javax.swing.JLabel();
         jScrollPane5 = new javax.swing.JScrollPane();
         tbl_nv = new javax.swing.JTable();
+        tf_search = new javax.swing.JTextField();
+        btn_search = new javax.swing.JButton();
 
         setBackground(new java.awt.Color(196, 164, 132));
         setMinimumSize(new java.awt.Dimension(970, 650));
@@ -243,6 +331,7 @@ public class Panel_QLNV extends javax.swing.JPanel {
         jLabel26.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
         jLabel26.setText("Giới tính:");
 
+        tf_manv.setEditable(false);
         tf_manv.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
         tf_manv.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -256,6 +345,7 @@ public class Panel_QLNV extends javax.swing.JPanel {
         tf_ngaysinh.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(new java.text.SimpleDateFormat("yyyy-MM-dd"))));
         tf_ngaysinh.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
 
+        rad_nam.setBackground(new java.awt.Color(255, 255, 255));
         buttonGroup1.add(rad_nam);
         rad_nam.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
         rad_nam.setText("Nam");
@@ -270,6 +360,7 @@ public class Panel_QLNV extends javax.swing.JPanel {
             }
         });
 
+        rad_nu.setBackground(new java.awt.Color(255, 255, 255));
         buttonGroup1.add(rad_nu);
         rad_nu.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
         rad_nu.setText("Nữ");
@@ -389,7 +480,12 @@ public class Panel_QLNV extends javax.swing.JPanel {
         jPanel10.add(btn_sua);
 
         btn_reset.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
-        btn_reset.setText("Xoá các mục đã nhập");
+        btn_reset.setText("Reset");
+        btn_reset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_resetActionPerformed(evt);
+            }
+        });
         jPanel10.add(btn_reset);
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
@@ -476,14 +572,33 @@ public class Panel_QLNV extends javax.swing.JPanel {
         });
         jScrollPane5.setViewportView(tbl_nv);
 
+        tf_search.setFont(new java.awt.Font("Inter", 0, 16)); // NOI18N
+        tf_search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tf_searchActionPerformed(evt);
+            }
+        });
+
+        btn_search.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/search.png"))); // NOI18N
+        btn_search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_searchActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel15Layout = new javax.swing.GroupLayout(jPanel15);
         jPanel15.setLayout(jPanel15Layout);
         jPanel15Layout.setHorizontalGroup(
             jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel15Layout.createSequentialGroup()
                 .addContainerGap(18, Short.MAX_VALUE)
-                .addGroup(jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel35)
+                .addGroup(jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel15Layout.createSequentialGroup()
+                        .addComponent(jLabel35)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(tf_search, javax.swing.GroupLayout.PREFERRED_SIZE, 386, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_search))
                     .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 935, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(17, Short.MAX_VALUE))
         );
@@ -491,8 +606,12 @@ public class Panel_QLNV extends javax.swing.JPanel {
             jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel15Layout.createSequentialGroup()
                 .addGap(12, 12, 12)
-                .addComponent(jLabel35)
-                .addGap(18, 18, 18)
+                .addGroup(jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_search, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel35)
+                        .addComponent(tf_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(23, 23, 23)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 287, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 122, Short.MAX_VALUE))
         );
@@ -564,9 +683,25 @@ public class Panel_QLNV extends javax.swing.JPanel {
         tf_matkhau.setText(model.getValueAt(id_selected, 7).toString());
     }//GEN-LAST:event_tbl_nvMouseClicked
 
+    private void tf_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf_searchActionPerformed
+        // TODO add your handling code here:
+        search();
+    }//GEN-LAST:event_tf_searchActionPerformed
+
+    private void btn_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_searchActionPerformed
+        // TODO add your handling code here:
+        search();
+    }//GEN-LAST:event_btn_searchActionPerformed
+
+    private void btn_resetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_resetActionPerformed
+        // TODO add your handling code here:
+        showQLNV();
+    }//GEN-LAST:event_btn_resetActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_reset;
+    private javax.swing.JButton btn_search;
     private javax.swing.JButton btn_sua;
     private javax.swing.JButton btn_them;
     private javax.swing.JButton btn_xoa;
@@ -596,6 +731,7 @@ public class Panel_QLNV extends javax.swing.JPanel {
     private javax.swing.JTextField tf_matkhau;
     private javax.swing.JFormattedTextField tf_ngaysinh;
     private javax.swing.JTextField tf_sdt;
+    private javax.swing.JTextField tf_search;
     private javax.swing.JTextField tf_taikhoan;
     // End of variables declaration//GEN-END:variables
 }
